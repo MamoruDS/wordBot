@@ -84,7 +84,7 @@ export const inlineMenu = async (
         route = 'app/404'
     }
     const inlineMenuInfo: types.inlineMenuInfo = menu[route]
-    let btns = [] as types.inlineKeyboard[]
+    let kb = new inlineKB()
     for (const btn of Object.values(inlineMenuInfo.btns)) {
         if (btn.type === 'static') {
             let inlineKey: types.inlineKeyboard = {
@@ -92,7 +92,7 @@ export const inlineMenu = async (
             }
             inlineKey.text = loc.str(btn.text)
             inlineKey.callback_data = await genCallBackData(btn.redir, btn.data)
-            btns.push(inlineKey)
+            kb.addKey(inlineKey)
         }
 
         if (btn.type === 'data') {
@@ -105,16 +105,16 @@ export const inlineMenu = async (
                     btn.redir,
                     d.callbackData
                 )
-                btns.push(inlineKey)
+                kb.addKey(inlineKey)
             }
         }
     }
     if (inlineMenuInfo.back) {
-        btns.push(await genBackInlineKey(inlineMenuInfo.back))
+        kb.addKey(await genBackInlineKey(inlineMenuInfo.back), true)
     }
     return {
         name: loc.str(inlineMenuInfo.name),
-        keys: btns,
+        keys: kb.getInlineKB(),
     }
 }
 
@@ -130,7 +130,7 @@ class inlineKB {
         this.addLine()
     }
 
-    private addLine() {
+    private addLine(): void {
         this._btnGrp.push([])
         this._curLine++
         this._lineWidth.push(0)
@@ -140,7 +140,7 @@ class inlineKB {
         inlineKey: types.inlineKeyboard,
         isNewLine?: boolean,
         isAutoAppend?: boolean
-    ) {
+    ): void {
         if (isNewLine) {
             this.addLine()
             this._btnGrp[this._curLine].push(inlineKey)
@@ -164,5 +164,9 @@ class inlineKB {
         this._btnGrp[inertLine].push(inlineKey)
         this._lineWidth[inertLine] += inlineKey.text.length
         return
+    }
+
+    public getInlineKB(): types.inlineKeyboard[][] {
+        return this._btnGrp
     }
 }
