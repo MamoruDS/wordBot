@@ -1,0 +1,38 @@
+app:
+    name: menu_name_app
+    back: false
+    btns:
+        - type: static
+          text: menu_default_book_set
+          redir: app/setDefaultBook/books
+          data: { 'method': 'getDefault' }
+
+app/setDefaultBook/books:
+    name: menu_name_set_default_book
+    back: app
+    btns:
+        - type: data
+          text: ~
+          redir: app/setDefaultBook/confirm
+
+app/setDefaultBook/confirm:
+    name: menu_name_set_default_book
+    back: app/setDefaultBook/books
+    btns:
+        - type: static
+          text: common_yes
+          redir: 'prevent'
+          data: { 'confirm': true }
+
+app/setDefaultBook/success:
+    name: menu_name_set_default_book
+    back: app
+    btns: ~
+
+app/404:
+    name: menu_name_not_found
+    back: app
+    btns:
+        - type: static
+          text: app_report
+          redir: 'prevent'
