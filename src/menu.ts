@@ -13,6 +13,7 @@ import { resolve } from 'dns'
 import { rejects } from 'assert'
 
 const loc = new Locale('zh-Hans')
+const maxLineWidth = 50
 
 const redisCli = redis.createClient()
 
@@ -114,5 +115,54 @@ export const inlineMenu = async (
     return {
         name: loc.str(inlineMenuInfo.name),
         keys: btns,
+    }
+}
+
+class inlineKB {
+    private _btnGrp: types.inlineKeyboard[][]
+    private _lineWidth: number[]
+    private _curLine: number
+
+    constructor() {
+        this._btnGrp = []
+        this._lineWidth = []
+        this._curLine = -1
+        this.addLine()
+    }
+
+    private addLine() {
+        this._btnGrp.push([])
+        this._curLine++
+        this._lineWidth.push(0)
+    }
+
+    public addKey(
+        inlineKey: types.inlineKeyboard,
+        isNewLine?: boolean,
+        isAutoAppend?: boolean
+    ) {
+        if (isNewLine) {
+            this.addLine()
+            this._btnGrp[this._curLine].push(inlineKey)
+            this._lineWidth[this._curLine] = Infinity
+            return
+        }
+        const lineCheck = this._lineWidth
+            .map((v, i) => {
+                if (v + inlineKey.text.length > maxLineWidth) return -1
+                else return i
+            })
+            .filter(v => v != -1)
+        if (lineCheck.length === 0) {
+            this.addLine()
+            return this.addKey(inlineKey, isAutoAppend)
+        }
+        let inertLine = this._curLine
+        if (lineCheck[0] !== this._curLine && isAutoAppend) {
+            inertLine = lineCheck[0]
+        }
+        this._btnGrp[inertLine].push(inlineKey)
+        this._lineWidth[inertLine] += inlineKey.text.length
+        return
     }
 }
