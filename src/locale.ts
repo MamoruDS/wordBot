@@ -1,8 +1,44 @@
 import { readFileSync } from 'fs'
 import yaml = require('js-yaml')
 
-const langDir = `./static/locales/`
-const langDoc = yaml.safeLoad(readFileSync(`${langDir}en.yml`, 'utf-8'))
+import * as config from './config'
+
+const langDoc = yaml.safeLoad(readFileSync(`${config.LANG}en.yml`, 'utf-8'))
+
+const getLangStr = (
+    field: string,
+    lang: string = 'en',
+    warn: boolean = true,
+    altLang: string = 'en'
+) => {
+    let _lang = ''
+    try {
+        _lang = yaml.safeLoad(
+            readFileSync(`${config.LANG}${lang}.yml`, 'utf-8')
+        )[field]
+    } catch (e) {
+        if (e instanceof yaml.YAMLException && warn) {
+            console.log(`[ERROR] Can not parse yaml file ${lang}.yml`)
+        }
+    } finally {
+        if (_lang === undefined || _lang === null) {
+            _lang = ''
+            if (warn)
+                console.log(
+                    `[ERROR] Can not get field:["${field}"] in lang[${lang}]`
+                )
+        }
+        if (_lang === '') {
+            if (lang === altLang) {
+                return '[UNKNOWN_FIELD]'
+            } else {
+                return getLangStr(field)
+            }
+        } else {
+            return _lang
+        }
+    }
+}
 
 const format = (str: string, args: [string | number] | []): string => {
     return str.replace(/(%%)|(%[d|s|j])/g, (x, y, z) => {
@@ -32,7 +68,7 @@ class localization {
     constructor(lang: string) {
         this._lang = lang
         this._langDoc = yaml.safeLoad(
-            readFileSync(`${langDir}${lang}.yml`, 'utf-8')
+            readFileSync(`${config.LANG}${lang}.yml`, 'utf-8')
         )
     }
 
