@@ -3,16 +3,14 @@ import yaml = require('js-yaml')
 import redis = require('redis')
 
 import * as types from './types'
+import * as config from './config'
 
-const menuDir = `./static/inlineMenu/`
-const menu = yaml.safeLoad(readFileSync(`${menuDir}routes.yml`, 'utf-8'))
+const menu = yaml.safeLoad(readFileSync(`${config.MENU}routes.yml`, 'utf-8'))
 
 const app = 'wordBot'
-import Locale from './locale'
-import { resolve } from 'dns'
-import { rejects } from 'assert'
+import loc from './locale'
 
-const loc = new Locale('zh-Hans')
+// const loc = new Locale('zh-Hans')
 const maxLineWidth = 50
 
 const redisCli = redis.createClient()
@@ -69,7 +67,7 @@ const genBackInlineKey = async (
     redir?: string
 ): Promise<types.inlineKeyboard> => {
     let inlineKey: types.inlineKeyboard = {
-        text: loc.str('common_back'),
+        text: loc('common_back'),
     }
     inlineKey.callback_data = await genCallBackData(redir)
     return inlineKey
@@ -90,7 +88,7 @@ export const inlineMenu = async (
             let inlineKey: types.inlineKeyboard = {
                 text: '',
             }
-            inlineKey.text = loc.str(btn.text)
+            inlineKey.text = loc(btn.text)
             inlineKey.callback_data = await genCallBackData(btn.redir, btn.data)
             kb.addKey(inlineKey)
         }
@@ -113,7 +111,7 @@ export const inlineMenu = async (
         kb.addKey(await genBackInlineKey(inlineMenuInfo.back), true)
     }
     return {
-        name: loc.str(inlineMenuInfo.name),
+        name: loc(inlineMenuInfo.name),
         keys: kb.getInlineKB(),
     }
 }
