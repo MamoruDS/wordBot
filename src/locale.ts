@@ -3,8 +3,6 @@ import yaml = require('js-yaml')
 
 import * as config from './config'
 
-const langDoc = yaml.safeLoad(readFileSync(`${config.LANG}en.yml`, 'utf-8'))
-
 const getLangStr = (
     field: string,
     lang: string = 'en',
@@ -61,24 +59,12 @@ const format = (str: string, args: [string | number] | []): string => {
     })
 }
 
-class localization {
-    private _lang: string
-    private _langDoc: object
-
-    constructor(lang: string) {
-        this._lang = lang
-        this._langDoc = yaml.safeLoad(
-            readFileSync(`${config.LANG}${lang}.yml`, 'utf-8')
-        )
-    }
-
-    public str = (key: string, args: [string | number] | [] = []): string => {
-        if (this._langDoc.hasOwnProperty(key)) {
-            return format(this._langDoc[key], args)
-        } else {
-            return format(langDoc[key], args)
-        }
-    }
+const localization = (
+    field: string,
+    args: [string | number] | [] = [],
+    opts: { lang: string } = { lang: '' }
+) => {
+    return format(getLangStr(field, opts.lang || config.getLang()), args)
 }
 
 export = localization
